@@ -1,3 +1,15 @@
+// -*-Faust-*-
+
+declare name "PodcastPlugin Track";
+declare version "0.1";
+declare author "Klaus Scheuermann";
+declare license "GPLv3";
+
+// double precision -double needed!
+
+
+
+
 import("stdfaust.lib");
 
 //----------------------- Global Parameters -----------------------

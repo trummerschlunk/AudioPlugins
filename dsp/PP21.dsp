@@ -8,8 +8,7 @@ declare license "GPLv3";
 // double precision -double needed!
 
 
-
-
+ds = library("dynamicsmoothing.lib");
 import("stdfaust.lib");
 
 //----------------------- Global Parameters -----------------------
@@ -256,7 +255,7 @@ with {
   FB(lufs,prev_gain) =
     (target - lufs)
     +(prev_gain )
-    : dynamicSmoothing(
+    : ds.dynamicSmoothing(
       sensitivity * expander(abs(fl)+abs(fr))
     ,  basefreq * expander(abs(fl)+abs(fr))
     )
@@ -351,7 +350,7 @@ ebur128 = ebufilter : normalize997;
 
 
 
-
+/*
 // DYNAMIC SMOOTHING (Dario)
 
 PI = ma.PI;
@@ -383,6 +382,7 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
                 CF = min(NY * .25, baseCF + sensitivity * abs(s) * NY);
             };
     };
+    */
 
 
 

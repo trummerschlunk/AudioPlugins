@@ -1,3 +1,12 @@
+# Podcast Plugins
+
+Two speech enhancement audio plugins for podcasters.
+
+Early design phase.
+Written in FAUST
+
+Plugins via:
+
 # DPF-Fadeli
 
 An experiment with Faust Demo Library content as DPF plugins.

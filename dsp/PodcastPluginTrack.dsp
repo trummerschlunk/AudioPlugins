@@ -9,6 +9,8 @@ declare license "GPLv3";
 
 
 ds = library("dynamicsmoothing.lib");
+ebu = library("ebur128.lib");
+ex = library("expanders.lib");
 import("stdfaust.lib");
 
 //----------------------- Global Parameters -----------------------
@@ -111,7 +113,7 @@ lk_fixed_sb(Tg)= (kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with
     sump(n) = ba.slidingSump(n, Tg*maxSR)/max(n,ma.EPSILON);
     envelope(period, x) = x * x :  sump(rint(period * ma.SR));
     zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
-    kfilter = ebur128;
+    kfilter = ebu.ebur128;
 };
 
 measure = lk_fixed_sb(0.8);
@@ -224,7 +226,7 @@ lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691)
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 
-  kfilter = ebur128;
+  kfilter = ebu.ebur128;
 };
 
 lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
@@ -233,7 +235,7 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 
-  kfilter = ebur128;
+  kfilter = ebu.ebur128;
 };
 lk2 = lk2_fixed(3);
 lk2_short = lk2_fixed(0.4);
@@ -307,7 +309,7 @@ with {
 
 
 // EBU FILTER
-
+/*
 freq2k(f_c) = tan((ma.PI * f_c)/ma.SR);
 
 stage1 = fi.tf22t(b0,b1,b2,a1,a2)
@@ -345,44 +347,11 @@ ebufilter = stage1 : stage2;
 normalize997 = *(0.9273671710547968);
 ebur128 = ebufilter : normalize997;
 
+*/
 
 
 
 
-
-/*
-// DYNAMIC SMOOTHING (Dario)
-
-PI = ma.PI;
-SR = ma.SR;
-NY = SR / 2.0;
-T = 1.0 / SR;
-PIT = PI * T;
-
-SVF(Q, CF, x) = f ~ si.bus(2) : ! , ! , si.bus(3)
-    with {
-        g = tan(CF * PIT);
-        R2 = 1.0 / Q;
-        gPlusR2 = g + R2;
-        f(s0, s1) = u0 , u1 , BP , HP , LP
-            with {
-                HP = (x - s0 * gPlusR2 - s1) / (1.0 + g * gPlusR2);
-                v0 = HP * g;
-                BP = s0 + v0;
-                v1 = BP * g;
-                LP = s1 + v1;
-                u0 = v0 + BP;
-                u1 = v1 + LP;
-            };
-    };
-dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
-    with {
-        f(s) = SVF(.5, CF, x)
-            with {
-                CF = min(NY * .25, baseCF + sensitivity * abs(s) * NY);
-            };
-    };
-    */
 
 
 

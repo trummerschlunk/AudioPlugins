@@ -20,7 +20,7 @@ maxSR = 192000; // maximum sample rate
 Nch = 2; //number of channels
 Nba = 5; //number of bands of the multiband compressor
 
-process = _,_ <: (prefilter_bp : ballancer_bp : leveler : mbcomp_bp : limiter_lookahead), (_,_) ;
+process = _,_ : (pregain(Nch) : lufs_meter : prefilter_bp : ballancer_bp : leveler : mbcomp_bp : limiter_lookahead);
 
 //----------------------- Utility Functions -----------------------
 // Stereo bypass with smooth fading
@@ -28,6 +28,15 @@ bp2(sw,pr) = _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {
     sm = sw : si.smoo;
 };
 
+
+
+
+
+//------------------------ PRE-GAIN Section ------------------------
+
+pregain(n) = par(i,n,gain) with {
+    gain = _ * (vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[1]PreStage/[1][unit:dB]PreGain", 0, -20, 20,0.1) : ba.db2linear : si.smoo);
+};
 
 
 
@@ -239,7 +248,7 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
 };
 lk2 = lk2_fixed(3);
 lk2_short = lk2_fixed(0.4);
-lufs_meter(l,r) = l,r <: l, attach(r, (lk2 : vbargraph("[unit:dB]out-lufs-s",-120,0))) : _,_;
+lufs_meter(l,r) = l,r <: l, attach(r, (lk2_short : vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[1]PreStage/[unit:dB]lufs",-120,0))) : _,_;
 
 lk2_time =
   // 0.4;

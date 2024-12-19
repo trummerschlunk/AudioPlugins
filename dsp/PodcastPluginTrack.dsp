@@ -7,11 +7,41 @@ declare license "GPLv3";
 
 // double precision -double needed!
 
+//----------------------- Initial Values -----------------------
+init_spectrum2 = -24,-22,-20,-19,  -18,-18,-18,-18,  -20,-22,-24,-24,  -23,-24,-25,-25,  -24,-23,-20,-16;
+init_spectrum1 = -22,-19,-18,-16,  -17,-18,-18,-18,  -18,-19,-20,-22,  -24,-27,-26,-28,  -29,-29,-29,-29;
+init_mb_outGain = 0;
+init_leveler_target = -18;
+init_leveler_maxboost = 30;
+init_leveler_maxcut = 30;
+init_leveler_brake_threshold = -22;
+init_leveler_speed = 80;
 
-ds = library("dynamicsmoothing.lib");
-ebu = library("ebur128.lib");
-ex = library("expanders.lib");
-import("stdfaust.lib");
+//----------------------- GUI Elements -----------------------
+preGainSlider = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[1]PreStage/[1][unit:dB]PreGain", 0, -20, 20, 0.1);
+spectrum_morph = vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[2]spectrum morph",0.5,0,1,0.01);
+sb_strength = vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[1]strength", 1,0,1,0.1);
+delay = vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[2]delay", 100,0,1000,1) / 1000 * ma.SR;
+ballancer_checkbox = checkbox("v:Podcast Plugins/h:[0]Modules/[2]ballancer");
+prefilter_checkbox = checkbox("v:Podcast Plugins/h:[0]Modules/[1]prefilter");
+spectrum1(n) = par(i, n, vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[6]spectrum1/%2i",(init_spectrum1:ba.selector(i,BANDS)),-50,0,1));
+spectrum2(n) = par(i, n, vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[4]spectrum2/%2i",(init_spectrum2:ba.selector(i,BANDS)),-50,0,1));
+spectrum_meter(i) = par(i,BANDS, (_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[6]spectrum morph/[1][unit:dB]%2i",-50,0))));
+meter_sb(i) = _ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band%2i",-40,0));
+gainmeter_sb(i) = _ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[3]resulting gain/[1]gr %2i",-20,20));
+meter_expander_sb = vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[3][integer]expander",0,1);
+leveler_meter_gain = vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[1][unit:dB]gain",-50,50);
+bp = checkbox("v:Podcast Plugins/h:[0]Modules/[3]leveler"):si.smoo;
+target = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[3]target[unit:dB]", init_leveler_target,-50,-2,1);
+leveler_speed = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
+leveler_brake_thresh = target + vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
+meter_leveler_brake = _*100 : vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[6][unit:%][integer]brake",0,100);
+limit_pos = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
+limit_neg = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
+threshLim = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1);
+rel = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
+meter_brickwall = _<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
+mbcomp_morph = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:Parameters/[2]mb morph",0.5,0,1,0.01);
 
 //----------------------- Global Parameters -----------------------
 BANDS = 20; // number of bands of the spectral ballancer
@@ -19,6 +49,11 @@ maxSR = 192000; // maximum sample rate
 
 Nch = 2; //number of channels
 Nba = 5; //number of bands of the multiband compressor
+
+ds = library("dynamicsmoothing.lib");
+ebu = library("ebur128.lib");
+ex = library("expanders.lib");
+import("stdfaust.lib");
 
 process = _,_ : (pregain(Nch) : lufs_meter : prefilter_bp : ballancer_bp : leveler : mbcomp_bp : limiter_lookahead);
 
@@ -28,59 +63,29 @@ bp2(sw,pr) = _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {
     sm = sw : si.smoo;
 };
 
-
-
-
-
 //------------------------ PRE-GAIN Section ------------------------
 
 pregain(n) = par(i,n,gain) with {
-    gain = _ * (vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[1]PreStage/[1][unit:dB]PreGain", 0, -20, 20,0.1) : ba.db2linear : si.smoo);
+    gain = _ * (preGainSlider : ba.db2linear : si.smoo);
 };
 
-
-
-
-
-
 //----------------------- Pre-Filter Section -----------------------
-prefilter_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[1]prefilter"), (prefilter,prefilter));
+prefilter_bp = bp2(prefilter_checkbox, (prefilter,prefilter));
 
 prefilter = lowcut : highcut with {
     lowcut = fi.highpass(2,60);
     highcut = fi.lowpass(2,16000);
 };
 
-
-
-
-
-
-
-
 //----------------------- Ballancer Section -----------------------
 // Target spectrum curves (in dB) for the spectral ballancer
-init_spectrum2 = -24,-22,-20,-19,  -18,-18,-18,-18,  -20,-22,-24,-24,  -23,-24,-25,-25,  -24,-23,-20,-16;
-init_spectrum1 = -22,-19,-18,-16,  -17,-18,-18,-18,  -18,-19,-20,-22,  -24,-27,-26,-28,  -29,-29,-29,-29;
-
-init_mb_outGain = 0;
-
-// Add interpolation slider
-spectrum_morph = vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[2]spectrum morph",0.5,0,1,0.01);
 
 // Create interpolated spectrum array using si.interpolate
 spectrum = par(i,BANDS, (
     ((spectrum1(BANDS):ba.selector(i,BANDS)), (spectrum2(BANDS):ba.selector(i,BANDS))) :
     si.interpolate(spectrum_morph)));// : spectrum_meter(BANDS);
 
-spectrum1(n) = par(i, n, vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[6]spectrum1/%2i",(init_spectrum1:ba.selector(i,BANDS)),-50,0,1));
-spectrum2(n) = par(i, n, vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[4]spectrum2/%2i",(init_spectrum2:ba.selector(i,BANDS)),-50,0,1));
-
-spectrum_meter(i) = par(i,BANDS,   (_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[6]spectrum morph/[1][unit:dB]%2i",-50,0))));
- 
-
-sb_strength =vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[1]strength", 1,0,1,0.1);
-ballancer_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[2]ballancer"), ballancer_st);
+ballancer_bp = bp2(ballancer_checkbox, ballancer_st);
 ballancer_st = _,_ :> _ *0.5 : ballancer <: _,_;
 
 ballancer(l) = l <: 
@@ -114,8 +119,6 @@ bpbank(nbands) = _ <: par(i, nbands, bandpass(freq(i),i) * norm) with {
     bandpass(f,i) = fi.resonbp(f,Q,1) * gain(i);
 };
 
-delay = vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[2]delay", 100,0,1000,1) / 1000 * ma.SR;
-
 gainchange(in) = (_:ba.db2linear)*(_:de.delay(48000,delay));
 
 lk_fixed_sb(Tg)= (kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
@@ -127,11 +130,7 @@ lk_fixed_sb(Tg)= (kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with
 
 measure = lk_fixed_sb(0.8);
 
-meter_sb(i) = _ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band%2i",-40,0));
-gainmeter_sb(i) = _ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[3]resulting gain/[1]gr %2i",-20,20));
-
 // EXPANDER
-meter_expander_sb = vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[3][integer]expander",0,1);
 expander_sb(x) = (peak_expansion_gain_mono_db(maxHold,strength,thresh,range,att,hold,gate_rel,knee,prePost,x)
                  : ba.db2linear
                  :max(0)
@@ -165,21 +164,7 @@ with {
     x:abs:ba.slidingMax(hold*ma.SR,maxHold);
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // LEVELER
-
 
 leveler(l,r) =
 
@@ -208,26 +193,6 @@ sensitivity =
                        , 0.00000025
                        , 0.0000025 // hslider("sens fast", 0.0000025, 0.0000025, 0.000005, 0.0000001)
                        );
-
-
-leveler_meter_gain = vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[1][unit:dB]gain",-50,50);
-bp = checkbox("v:Podcast Plugins/h:[0]Modules/[3]leveler"):si.smoo;
-target = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[3]target[unit:dB]", init_leveler_target,-50,-2,1);
-leveler_speed = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01; //.005, 0.15, .005);
-leveler_brake_thresh = target + vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
-meter_leveler_brake = _*100 : vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[6][unit:%][integer]brake",0,100);
-limit_pos = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
-limit_neg = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
-
-init_leveler_target = -18;
-init_leveler_maxboost = 30;
-init_leveler_maxcut = 30;
-init_leveler_brake_threshold = -22;
-init_leveler_speed = 80;
-
-///////////////////////////////////////////////////////////////////////////////
-//                                 LUFS METER                                //
-///////////////////////////////////////////////////////////////////////////////
 
 lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
   // maximum assumed sample rate is 192k
@@ -302,21 +267,6 @@ with {
   
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // EBU FILTER
 /*
 freq2k(f_c) = tan((ma.PI * f_c)/ma.SR);
@@ -357,19 +307,6 @@ normalize997 = *(0.9273671710547968);
 ebur128 = ebufilter : normalize997;
 
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // MSCOMP Interpolated (Bart Brouns)
 mbcomp_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[4]comp"),
@@ -515,14 +452,10 @@ t = top:max(ma.EPSILON);
   prePost = 1;
 };
 
-
-
 // stereo bypass with si.smoo fading
 bp2(sw,pr) =  _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {
     sm = sw : si.smoo;
 };
-
-
 
 /* ******* 8< *******/
 // TODO: use co.peak_compression_gain_N_chan_db when it arrives in the current faust version
@@ -545,17 +478,6 @@ peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N) =
 
 /* ******* >8 *******/
 
-
-
-
-
-
-
-
-
-
-
-
 // LIMITER NO LATENCY
 brickwall_no_latency_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[5]brickwall"),brickwall_no_latency);
 brickwall_no_latency =
@@ -576,14 +498,6 @@ with {
     si.bus(N) <: (peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N),si.bus(N)) : ro.interleave(N,2) : par(i,N,(meter: ba.db2linear)*_);
 
 };
-
-
-
-
-
-
-
-
 
 // LIMITER with LOOKAHEAD
 

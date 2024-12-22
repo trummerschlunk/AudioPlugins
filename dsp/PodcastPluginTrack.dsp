@@ -42,6 +42,9 @@ threshLim = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickw
 rel = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
 meter_brickwall = _<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
 mbcomp_morph = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:Parameters/[2]mb morph",0.5,0,1,0.01);
+limiter_thresh = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1) : ba.db2linear;
+meter_mb(b,c) =
+    _<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
 */
 
 //----------------------- Almost no GUI Elements -----------------------
@@ -55,9 +58,9 @@ spectrum1(n) = init_spectrum1; //par(i, n, vslider("v:Podcast Plugins/v:[1]Spect
 spectrum2(n) = init_spectrum2;//par(i, n, vslider("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[4]spectrum2/%2i",(init_spectrum2:ba.selector(i,BANDS)),-50,0,1));
 spectrum_meter(i) = par(i,BANDS,_);//par(i,BANDS, (_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/v:Target Curves/h:[6]spectrum morph/[1][unit:dB]%2i",-50,0))));
 meter_sb(i) = _; //_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band%2i",-40,0));
-gainmeter_sb(i) = _ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[3]resulting gain/[1]gr %2i",-20,20));
+gainmeter_sb(i) = _; //_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:[3]resulting gain/[1]gr %2i",-20,20));
 meter_expander_sb = _; //vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[3][integer]expander",0,1);
-leveler_meter_gain = vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[1][unit:dB]gain",-50,50);
+leveler_meter_gain = _; //vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[1][unit:dB]gain",-50,50);
 bp = checkbox("v:Podcast Plugins/h:[0]Modules/[3]leveler"):si.smoo;
 target = init_leveler_target; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[3]target[unit:dB]", init_leveler_target,-50,-2,1);
 leveler_speed = init_leveler_speed *0.01; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
@@ -69,6 +72,8 @@ threshLim = -1; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]
 rel = 20*0.001; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
 meter_brickwall = _; //_<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
 mbcomp_morph = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:Parameters/[2]mb morph",0.5,0,1,0.01);
+limiter_thresh = -1 : ba.db2linear; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1) : ba.db2linear;
+meter_mb(b,c) = _; //_<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
 
 
 
@@ -391,8 +396,7 @@ with {
   /* TODO: separate %b%c in symbol name so that it is a valid C/C++ variable-name (ideally an underscore) %b_%c
    * meanwhile this is safe since there are only 8 bands (1..9) and 2 channels.
    */
-  meter_mb(b,c) =
-    _<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
+  //meter_mb(b,c) = _<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
 
   /* higher order low, band and hi shelf filter primitives */
   ls3(f,g) = fi.svf.ls (f, .5, g3) : fi.svf.ls (f, .707, g3) : fi.svf.ls (f, 2, g3) with {g3 = g/3;};
@@ -436,7 +440,7 @@ thresh_array = par(i,Nba, (
     si.interpolate(mbcomp_morph)));
 
 att_array1 = 15,12,10,8,5       : par(i,5,_*0.001);
-att_array2 = 10,8,6,4,2       : par(i,5,_*0.001);
+att_array2 = 10,8,6,4,2         : par(i,5,_*0.001);
     
 att_array = par(i,Nba, (
     ((att_array1:ba.selector(i,Nba)), (att_array2:ba.selector(i,Nba))) :
@@ -505,31 +509,8 @@ peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N) =
   par(i, N, peak_compression_gain_mono_db(strength,thresh,att,rel,knee,prePost))
   <: (si.bus(N),(ba.parallelMin(N) <: si.bus(N))) : ro.interleave(N,2) : par(i,N,(it.interpolate_linear(link)));
 
-/* ******* >8 *******/
 
-// LIMITER NO LATENCY
-brickwall_no_latency_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[5]brickwall"),brickwall_no_latency);
-brickwall_no_latency =
-  co.FFcompressor_N_chan(1,threshLim,att,rel,knee,0,link,meter_brickwall,2)
-with {
-
-  threshLim = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1);
-  att = 0;
-  rel = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
-  knee = 0;
-  link = 1;
-  meter_brickwall =
-    _<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
-
-  // The following code is in the libraries in the dev version of faust, but not yet in the latest release:
-  // TODO: use co.FFcompressor_N_chan
-  FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
-    si.bus(N) <: (peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N),si.bus(N)) : ro.interleave(N,2) : par(i,N,(meter: ba.db2linear)*_);
-
-};
 
 // LIMITER with LOOKAHEAD
 
-limiter_lookahead = co.limiter_lad_stereo(0.01,thresh,0.008,0.01,0.1) with {
-    thresh = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1) : ba.db2linear;
-};
+limiter_lookahead = co.limiter_lad_stereo(0.01,limiter_thresh,0.008,0.01,0.1);

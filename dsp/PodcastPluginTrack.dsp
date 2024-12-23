@@ -38,11 +38,11 @@ leveler_brake_thresh = target + vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp,
 meter_leveler_brake = _*100 : vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[6][unit:%][integer]brake",0,100);
 limit_pos = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
 limit_neg = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
-threshLim = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1);
-rel = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
+threshLim = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB]",-1,-20,-0,0.1);
+rel = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms]",20,5,100,1) *0.001;
 meter_brickwall = _<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
 mbcomp_morph = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:Parameters/[2]mb morph",0.5,0,1,0.01);
-limiter_thresh = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1) : ba.db2linear;
+limiter_thresh = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB]",-1,-20,-0,0.1) : ba.db2linear;
 meter_mb(b,c) =
     _<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
 */
@@ -62,17 +62,17 @@ gainmeter_sb(i) = _; //_ <: attach(_, vbargraph("v:Podcast Plugins/v:[1]Spectral
 meter_expander_sb = _; //vbargraph("v:Podcast Plugins/v:[1]Spectral Ballancer/h:Target Spectrum/h:Parameters/[3][integer]expander",0,1);
 leveler_meter_gain = _; //vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[1][unit:dB]gain",-50,50);
 bp = checkbox("v:Podcast Plugins/h:[0]Modules/[3]leveler"):si.smoo;
-target = init_leveler_target; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[3]target[unit:dB]", init_leveler_target,-50,-2,1);
+target = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[3]target[unit:dB][symbol:target]", init_leveler_target,-50,-2,1);
 leveler_speed = init_leveler_speed *0.01; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
 leveler_brake_thresh = target + init_leveler_brake_threshold +32; //target + vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
 meter_leveler_brake = _; //_*100 : vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[6][unit:%][integer]brake",0,100);
 limit_pos = init_leveler_maxboost; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
 limit_neg = init_leveler_maxcut : ma.neg; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[2]Leveler/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
-threshLim = -1; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1);
-rel = 20*0.001; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms][symbol:brickwall_release]",20,5,100,1) *0.001;
+threshLim = -1; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB]",-1,-20,-0,0.1);
+rel = 20*0.001; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[4]release[unit:ms]",20,5,100,1) *0.001;
 meter_brickwall = _; //_<: _,( vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[2]gr[unit:dB]",-20,0)) : attach;
 mbcomp_morph = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:Parameters/[2]mb morph",0.5,0,1,0.01);
-limiter_thresh = -1 : ba.db2linear; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB][symbol:brickwall_ceiling]",-1,-20,-0,0.1) : ba.db2linear;
+limiter_thresh = -1 : ba.db2linear; //vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[4]Brickwall/[3]brickwall ceiling[unit:dB]",-1,-20,-0,0.1) : ba.db2linear;
 meter_mb(b,c) = _; //_<: attach(_, (max(-12):min(12):vbargraph("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:bands/[8]gr %b[unit:dB]", -6, 6)));
 
 
@@ -301,46 +301,7 @@ with {
   
 };
 
-// EBU FILTER
-/*
-freq2k(f_c) = tan((ma.PI * f_c)/ma.SR);
-
-stage1 = fi.tf22t(b0,b1,b2,a1,a2)
-with {
-  f_c = 1681.7632251028442; // Hertz
-  gain = 3.9997778685513232; // Decibel
-  K = freq2k(f_c);
-  V_0 = pow(10, (gain/20.0));
-
-  denominator = 1.0 + sqrt(2.0)*K + K^2;
-  b0 = (V_0 + sqrt((2.0*V_0))*K + K^2) / denominator;
-  b1 = 2.0*(K^2 - V_0) / denominator;
-  b2 = (V_0 - sqrt(2.0*V_0)*K + K^2) / denominator;
-
-  a1 = 2*(K^2 - 1) / denominator;
-  a2 = (1 - sqrt(2.0)*K + K^2) / denominator;
-};
-
-stage2 = fi.tf22t(b0,b1,b2,a1,a2)
-with {
-  f_c = 38.135470876002174; // Hertz
-  Q = 0.5003270373223665;
-  K = freq2k(f_c);
-
-  denominator = (K^2) * Q + K + Q;
-  b0 = Q / denominator;
-  b1 = -2*Q / denominator;
-  b2 = b0;
-
-  a1 = (2*Q * (K^2 - 1)) / denominator;
-  a2 = ((K^2) * Q - K + Q) / denominator;
-};
-
-ebufilter = stage1 : stage2;
-normalize997 = *(0.9273671710547968);
-ebur128 = ebufilter : normalize997;
-
-*/
+//----------------------- Multiband Compressor Section -----------------------
 
 // MSCOMP Interpolated (Bart Brouns)
 mbcomp_bp = bp2(checkbox("v:Podcast Plugins/h:[0]Modules/[4]comp"),
@@ -417,8 +378,8 @@ with {
   };
 
   /* Cross over frequency range */
-  fl = 100;//vslider("v:Podcast Plugins/h:[3]Multiband Conpressor/h:[1]low band/[7][symbol:mscomp_low_crossover][scale:log][unit:Hz]low crossover", 80, 20, 4000, 1);
-  fh = 7000; //vslider("v:Podcast Plugins/h:[3]Multiband Conpressor/h:[2]high band/[7][symbol:mscomp_high_crossover][scale:log][unit:Hz]high crossover", 8000, 5000, 20000, 1);
+  fl = 100;//vslider("v:Podcast Plugins/h:[3]Multiband Conpressor/h:[1]low band/[7][scale:log][unit:Hz]low crossover", 80, 20, 4000, 1);
+  fh = 7000; //vslider("v:Podcast Plugins/h:[3]Multiband Conpressor/h:[2]high band/[7][scale:log][unit:Hz]high crossover", 8000, 5000, 20000, 1);
 
   /* Compressor settings */
 
@@ -432,8 +393,8 @@ strength_array = par(i,Nba, (
     ((strength_array1:ba.selector(i,Nba)), (strength_array2:ba.selector(i,Nba))) :
     si.interpolate(mbcomp_morph)));
 
-thresh_array1 = -16,-10,-12,-14,-16;
-thresh_array2 = -19,-14,-16,-18,-20;
+thresh_array1 = 2,8,6,4,2 : par(i,5,(_+target)); //target + 2, target + 8 , target + 6, target + 4, target + 2;  //-16,-10,-12,-14,-16;
+thresh_array2 = -1,4,2,0,-2 : par(i,5,(_+target)); //-19,-14,-16,-18,-20;
     
 thresh_array = par(i,Nba, (
     ((thresh_array1:ba.selector(i,Nba)), (thresh_array2:ba.selector(i,Nba))) :
@@ -470,7 +431,7 @@ gain_array = par(i,Nba, (
 
 link_array = (1,1,1,1,1);
 crossoverFreqs = LogArray(B-1,fl,fh);
-//mscomp_outGain = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:[6]out/[1][unit:dB][symbol:mscomp_output_gain]makeup", init_mb_outGain, -6, 6, 0.5):ba.db2linear:si.smoo;
+//mscomp_outGain = vslider("v:Podcast Plugins/h:[2]Leveler, MBcomp, Limiter/h:[3]Multiband Conpressor/h:[6]out/[1][unit:dB]makeup", init_mb_outGain, -6, 6, 0.5):ba.db2linear:si.smoo;
 
 // make a linear array of values, from bottom to top
 LinArray(N,bottom,top) = par(i,N,   ((top-bottom)*(i/(N-1)))+bottom);

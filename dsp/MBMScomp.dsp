@@ -18,8 +18,8 @@ ms_dec = _,_ <: +, -;
 Nch = 2; //number of channels
 Nba = 8; //number of bands of the multiband compressor
 
-global_thresh = vslider("v:master_me/h:[5]mscomp/[1]global_thresh[unit:dB][symbol:global_thresh][integer]", 0,-50,0,0.5);
-dryWet = vslider("v:master_me/h:[5]mscomp/[4]dry wet[unit:%][symbol:dryWet][integer]", 100,0,100,1) / 100;
+global_thresh = vslider("v:master_me/h:[5]mscomp/[1]global_thresh[unit:dB][symbol:global_thresh]", 0,-50,0,0.5);
+dryWet = vslider("v:master_me/h:[5]mscomp/[4]dry wet[unit:%][symbol:dryWet]", 100,0,100,1) / 100;
 
 // MSCOMP Interpolated
 mscomp_bp = bp2(checkbox("v:master_me/h:[5]mscomp/[0][symbol:mscomp_bypass]mscomp bypass"),
@@ -88,12 +88,12 @@ with {
   fh = vslider("v:master_me/h:[5]mscomp/h:[6]high band/[7][symbol:mscomp_high_crossover][scale:log][unit:Hz]high crossover", 8000, 5000, 20000, 1);
 
   /* Compressor settings */
-  strength_array = vslider("v:master_me/h:[5]mscomp/h:[5]low band/[1][unit:%][integer][symbol:mscomp_low_strength]low strength", 10, 0, 100, 1)*0.01,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[1][unit:%][integer][symbol:mscomp_high_strength]high strength", 30, 0, 100, 1)*0.01:LinArray(B);
+  strength_array = vslider("v:master_me/h:[5]mscomp/h:[5]low band/[1][unit:%][symbol:mscomp_low_strength]low strength", 10, 0, 100, 1)*0.01,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[1][unit:%][symbol:mscomp_high_strength]high strength", 30, 0, 100, 1)*0.01:LinArray(B);
   thresh_array = global_thresh + vslider("v:master_me/h:[5]mscomp/h:[5]low band/[2][unit:dB][symbol:mscomp_low_threshold]low tar-thresh", 0, -12, 12, 0.5),global_thresh + vslider("v:master_me/h:[5]mscomp/h:[6]high band/[2][unit:dB][symbol:mscomp_high_threshold]high tar-thresh", 0, -12, 12, 0.5):LinArray(B);
   att_array = (vslider("v:master_me/h:[5]mscomp/h:[5]low band/[3][unit:ms][symbol:mscomp_low_attack]low attack", 30, 0, 100, 0.1)*0.001,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[3][unit:ms][symbol:mscomp_high_attack]high attack", 4, 0, 100, 0.1)*0.001):LogArray(B);
   rel_array = (vslider("v:master_me/h:[5]mscomp/h:[5]low band/[4][unit:ms][symbol:mscomp_low_release]low release", 300, 1, 1000, 1)*0.001,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[4][unit:ms][symbol:mscomp_high_release]high release", 40, 1, 1000, 1)*0.001):LogArray(B);
   knee_array = (vslider("v:master_me/h:[5]mscomp/h:[5]low band/[5][unit:dB][symbol:mscomp_low_knee]low knee", 6, 0, 30, 0.1),vslider("v:master_me/h:[5]mscomp/h:[6]high band/[5][unit:dB][symbol:mscomp_high_knee]high knee", 6, 0, 30, 0.1)):LinArray(B);
-  link_array = (vslider("v:master_me/h:[5]mscomp/h:[5]low band/[6][unit:%][integer][symbol:mscomp_low_link]low link", 60, 0, 100, 1)*0.01,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[6][unit:%][integer][symbol:mscomp_high_link]high link", 20, 0, 100, 1)*0.01):LinArray(B);
+  link_array = (vslider("v:master_me/h:[5]mscomp/h:[5]low band/[6][unit:%][symbol:mscomp_low_link]low link", 60, 0, 100, 1)*0.01,vslider("v:master_me/h:[5]mscomp/h:[6]high band/[6][unit:%][symbol:mscomp_high_link]high link", 20, 0, 100, 1)*0.01):LinArray(B);
   crossoverFreqs = LogArray(B-1,fl,fh);
   mscomp_outGain = vslider("v:master_me/h:[5]mscomp/[3][unit:dB][symbol:mscomp_output_gain]makeup", 0, -6, 6, 0.5):ba.db2linear:si.smoo;
 

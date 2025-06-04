@@ -101,7 +101,7 @@ link = env_group(vslider("[5] link
       [tooltip: 0 means all channels get individual gain reduction, 1 means they all get the same gain reduction]",
                          100, 0, 100, 1) /100 );
 
-scfreq = env_group(vslider("[6]SC HP [scale:log]", 1, 1, 20000, 1));
+scfreq = env_group(vslider("[6]SC HP [scale:log]", 1, 1, 200, 1));
 
 
 

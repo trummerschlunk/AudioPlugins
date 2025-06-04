@@ -1,3 +1,11 @@
+// -*-Faust-*-
+
+declare name "upwardComp";
+declare version "1.0";
+declare author "Klaus Scheuermann";
+declare license "GPLv3";
+
+
 import("stdfaust.lib");
 
 // numerb of channels

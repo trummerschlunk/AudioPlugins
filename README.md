@@ -11,16 +11,17 @@ Select the latest workflow and scroll down to artefacts. These artefacts are the
 
 # Plugins
 
-## MBMScomp
+## mbmsComp
 8-Band Mid-Side Compressor based on cascaded shelf filters adapted from [master_me](https://github.com/trummerschlunk/master_me)
 
 ## upwardComp
 upward compressor with mid-side mode, linking and range control
 
-## side_eq
+## sideEQ
 boost a frequency range in the side signal, adapted from [master_me](https://github.com/trummerschlunk/master_me)
 
-
+## tiltEQ
+dual shelf tilt eq, adapted from [master_me](https://github.com/trummerschlunk/master_me).
 
 # Development
 

@@ -1,6 +1,13 @@
- import("stdfaust.lib");
+// -*-Faust-*-
+
+declare name "sideEQ";
+declare version "1.0";
+declare author "Klaus Scheuermann";
+declare license "GPLv3"; 
  
- process = si.bus(2) : side_eq_b : si.bus(2);
+import("stdfaust.lib");
+ 
+process = si.bus(2) : side_eq_b : si.bus(2);
  
 // stereo bypass with si.smoo fading
 bp2(sw,pr) =  _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {

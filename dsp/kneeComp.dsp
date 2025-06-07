@@ -48,7 +48,7 @@ with {
   thresh = vslider("h:[5]kneeComp/[2][symbol:kneecomp_threshold][unit:dB]thresh",0,-40,0,1);
   att = vslider("h:[5]kneeComp/[3][symbol:kneecomp_attack][unit:ms]attack",50,1,100,1)*0.001;
   rel = vslider("h:[5]kneeComp/[4][symbol:kneecomp_release][unit:ms]release",2000,1,4000,1)*0.001;
-  knee = vslider("h:[5]kneeComp/[5][unit:dB][symbol:kneecomp_knee]knee",24,0,30,1);
+  knee = vslider("h:[5]kneeComp/[5][unit:dB][symbol:kneecomp_knee]knee",24,0,24,1);
   link = vslider("h:[5]kneeComp/[6][symbol:kneecomp_link]link", 60, 0, 100, 1) *0.01;
   fffb = vslider ("h:[5]kneeComp/[7][symbol:kneecomp_fffb]ff-fb",50,0,100,1) *0.01;
   dw = vslider ("h:[5]kneeComp/[9][symbol:kneecomp_drywet]dry/wet",100,0,100,1) * 0.01:si.smoo;

@@ -12,7 +12,7 @@ import("stdfaust.lib");
 Nch = 2;
 
 // maximum time in seconds for attack, hold and release
-maxRelTime = 1;
+maxRelTime = 3;
 
 maxHold = 1000;
 
@@ -74,7 +74,7 @@ env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
 attack = env_group(vslider("[1] Attack [unit:ms]  [scale:log]
       [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
-                           20, 0.001, 1000, 0.1)-0.001) : *(0.001) :max(0);
+                           20, 0.001, 100, 0.1)-0.001) : *(0.001) :max(0);
 hold = env_group(vslider("[2] Hold [unit:ms]  [scale:log]
       [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
                          0.1, 0.1, 1000, 0.1)-0.001) : *(0.001) :max(0);

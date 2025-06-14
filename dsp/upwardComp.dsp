@@ -60,11 +60,11 @@ strength = 0 - ctl_group(vslider("[1] Strength
 
 range = 0 - ctl_group(vslider("[2] Range [unit:dB]
       [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Strength]",
-                          6, 0, 20, 1));
+                          6, 0, 24, 1));
 
 knee = ctl_group(vslider("[3] Knee [unit:dB]
       [tooltip: soft knee amount in dB]",
-                         6, 0, 30, 0.1));
+                         6, 0, 24, 0.1));
 
 dryWet = ctl_group(vslider("[4] dry/wet
       [tooltip: 0 = dry, 100 = wet]",

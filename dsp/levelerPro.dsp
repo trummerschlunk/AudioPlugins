@@ -18,20 +18,23 @@ init_leveler_maxboost = 30;
 init_leveler_maxcut = 30;
 init_leveler_brake_threshold = -22;
 init_leveler_speed = 80;
+init_leveler_scale =100;
 
 
 process = si.bus(Nch) : pregain(Nch) : leveler : si.bus(Nch);
 
-preGainSlider = vslider("h:[2]Leveler Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
+preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
 
-target = vslider("h:[2]Leveler Controls/[1][symbol:target]target", -23, -60, 0, 1);
+target = vslider("h:[2]Controls/[1][symbol:target]target", -23, -60, 0, 1);
 bp = checkbox("v:LevelerPro/[3][symbol:bypass_leveler]bypass_leveler"):si.smoo;
-leveler_speed = vslider("h:[2]Leveler Controls/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
-leveler_brake_thresh = target + vslider("h:[2]Leveler Controls/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
-meter_leveler_brake = _*100 : vbargraph("h:[2]Leveler Controls/[6][unit:%][integer]brake",0,100);
-limit_pos = vslider("h:[2]Leveler Controls/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
-limit_neg = vslider("h:[2]Leveler Controls/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
-leveler_meter_gain = vbargraph("h:[2]Leveler Controls/[1][unit:dB][symbol:leveler_gain]gain",-50,50);
+leveler_speed = vslider("h:[2]Controls/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
+leveler_brake_thresh = target + vslider("h:[2]Controls/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
+meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[6][unit:%][integer]brake",0,100);
+limit_pos = vslider("h:[2]Controls/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
+limit_neg = vslider("h:[2]Controls/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
+leveler_meter_gain = vbargraph("h:[2]Controls/[1][unit:dB][symbol:leveler_gain]gain",-50,50);
+
+scale = vslider("h:[2]Controls/[9][unit:%]scale", init_leveler_scale, 0, 100, 1) * 0.01;
 
 // utility functions
 
@@ -106,11 +109,13 @@ with {
   FB(lufs,prev_gain) =
     (target - lufs)
     +(prev_gain )
+    :  limit(limit_neg,limit_pos)
     : ds.dynamicSmoothing(
       sensitivity * expander(abs(fl)+abs(fr))
     ,  basefreq * expander(abs(fl)+abs(fr))
     )
-    :  limit(limit_neg,limit_pos)
+    
+    * scale
     : leveler_meter_gain;
 
   limit(lo,hi) = min(hi) : max(lo);

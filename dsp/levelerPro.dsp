@@ -26,7 +26,7 @@ process = si.bus(Nch) : pregain(Nch) : leveler : si.bus(Nch);
 preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
 
 target = vslider("h:[2]Controls/[1][symbol:target]target", -23, -60, 0, 1);
-bp = checkbox("v:LevelerPro/[3][symbol:bypass_leveler]bypass_leveler"):si.smoo;
+bp = checkbox("h:LevelerPro/[3][symbol:bypass_leveler]bypass_leveler"):si.smoo;
 leveler_speed = vslider("h:[2]Controls/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
 leveler_brake_thresh = target + vslider("h:[2]Controls/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
 meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[6][unit:%][integer]brake",0,100);
@@ -78,7 +78,7 @@ lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691)
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 
-  kfilter = ebu.ebur128;
+  //kfilter = ebu.ebur128;
 };
 
 lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
@@ -87,7 +87,7 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 
-  kfilter = ebu.ebur128;
+  //kfilter = ebu.ebur128;
 };
 lk2 = lk2_fixed(3);
 lk2_short = lk2_fixed(3);
@@ -99,6 +99,15 @@ lk2_time =
 // it.interpolate_linear(leveler_speed :pow(hslider("lk2 power", 2, 0.1, 10, 0.1))
 //                      ,0.4 // hslider("lk2 time", 0.4, 0.001, 3, 0.001)
 //                      , 0.04):max(0);
+
+
+kfilter = si.bus(1) <: (ebu.ebur128 * filterswitch), (speechfilter  * (1 - filterswitch)) :> si.bus(1) with{
+    speechfilter = fi.highpass(2,200) : fi.fi.peak_eq_cq(3,2400,0.7);
+    filterswitch = hslider("h:LevelerPro/[4][symbol:leveler_filterswitch][style:radio{'ebu':0;'speech':1}]filter",0,0,1,1);
+};
+
+
+
 leveler_sc(target,fl,fr,l,r) =
   calc(lk2_fixed(0.01,fl,fr))
   // (calc(lk2_var(lk2_time,fl,fr))*(1-bp)+bp)

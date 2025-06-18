@@ -6,12 +6,12 @@ declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 ds = library("dynamicsmoothing.lib");
-ebu = library("ebur128.lib");
+// ebu = library("ebur128.lib");
 
 import("stdfaust.lib");
 
 Nch = 2;
-maxSR = 96000;
+maxSR = 48000;
 
 init_leveler_target = -16;
 init_leveler_maxboost = 30;
@@ -72,7 +72,7 @@ sensitivity =
                        , 0.0000025 // hslider("sens fast", 0.0000025, 0.0000025, 0.000005, 0.0000001)
                        );
 
-lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
+lk2_fixed(Tg)= par(i,2,kfilter : zi) :> _ : 4.342944819 * log(max(_, 1e-12)) : -(0.691) with {
   // maximum assumed sample rate is 192k
   sump(n) = ba.slidingSump(n, Tg*maxSR)/max(n,ma.EPSILON);
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
@@ -89,7 +89,7 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
 
   //kfilter = ebu.ebur128;
 };
-lk2 = lk2_fixed(3);
+// lk2 = lk2_fixed(3);
 lk2_short = lk2_fixed(3);
 lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : vbargraph("h:[6]PostStage/[symbol:lufs_out_meter][unit:dB]lufs",meters_minimum,0))) : _,_;
 
@@ -101,8 +101,8 @@ lk2_time =
 //                      , 0.04):max(0);
 
 
-kfilter = si.bus(1) <: (ebu.ebur128 * filterswitch), (speechfilter  * (1 - filterswitch)) :> si.bus(1) with{
-    speechfilter = fi.highpass(2,200) : fi.fi.peak_eq_cq(3,2400,0.7);
+kfilter = si.bus(1) <: (ebur128 * filterswitch), (speechfilter  * (1 - filterswitch)) :> si.bus(1) with{
+    speechfilter = fi.highpass(2,200) : fi.peak_eq_cq(3,2400,0.7);
     filterswitch = hslider("h:LevelerPro/[4][symbol:leveler_filterswitch][style:radio{'ebu':0;'speech':1}]filter",0,0,1,1);
 };
 
@@ -155,3 +155,57 @@ with {
 
   
 };
+
+
+
+
+
+
+
+
+
+
+
+freq2k(f_c) = tan((ma.PI * f_c)/ma.SR);
+
+stage1 = fi.tf22t(b0,b1,b2,a1,a2)
+with {
+  f_c = 1681.7632251028442; // Hertz
+  gain = 3.9997778685513232; // Decibel
+  K = freq2k(f_c);
+  V_0 = pow(10, (gain/20.0));
+
+  denominator = 1.0 + sqrt(2.0)*K + K^2;
+  b0 = (V_0 + sqrt((2.0*V_0))*K + K^2) / denominator;
+  b1 = 2.0*(K^2 - V_0) / denominator;
+  b2 = (V_0 - sqrt(2.0*V_0)*K + K^2) / denominator;
+
+  a1 = 2*(K^2 - 1) / denominator;
+  a2 = (1 - sqrt(2.0)*K + K^2) / denominator;
+};
+
+stage2 = fi.tf22t(b0,b1,b2,a1,a2)
+with {
+  f_c = 38.135470876002174; // Hertz
+  Q = 0.5003270373223665;
+  K = freq2k(f_c);
+
+  denominator = (K^2) * Q + K + Q;
+  b0 = Q / denominator;
+  b1 = -2*Q / denominator;
+  b2 = b0;
+
+  a1 = (2*Q * (K^2 - 1)) / denominator;
+  a2 = ((K^2) * Q - K + Q) / denominator;
+};
+
+prefilter = stage1 : stage2;
+
+
+// Normalize such that 997Hz has unity gain 1.0.  Otherwise a sinewave
+// of ~1000Hz would gain 0.66dB. This is additional to the
+// ITU-recommendation biquads! 997Hz is the closest prime number to
+// 1000Hz.
+normalize997 = *(0.9273671710547968);
+
+ebur128 = prefilter : normalize997;

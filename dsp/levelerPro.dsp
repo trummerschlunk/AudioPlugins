@@ -5,7 +5,7 @@ declare version "1.0";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
-ds = library("dynamicsmoothing.lib");
+// ds = library("dynamicsmoothing.lib");
 // ebu = library("ebur128.lib");
 
 import("stdfaust.lib");
@@ -72,7 +72,7 @@ sensitivity =
                        , 0.0000025 // hslider("sens fast", 0.0000025, 0.0000025, 0.000005, 0.0000001)
                        );
 
-lk2_fixed(Tg)= par(i,2,kfilter : zi) :> _ : 4.342944819 * log(max(_, 1e-12)) : -(0.691) with {
+lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
   // maximum assumed sample rate is 192k
   sump(n) = ba.slidingSump(n, Tg*maxSR)/max(n,ma.EPSILON);
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
@@ -89,7 +89,8 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
 
   //kfilter = ebu.ebur128;
 };
-// lk2 = lk2_fixed(3);
+
+
 lk2_short = lk2_fixed(3);
 lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : vbargraph("h:[6]PostStage/[symbol:lufs_out_meter][unit:dB]lufs",meters_minimum,0))) : _,_;
 
@@ -102,7 +103,7 @@ lk2_time =
 
 
 kfilter = si.bus(1) <: (ebur128 * filterswitch), (speechfilter  * (1 - filterswitch)) :> si.bus(1) with{
-    speechfilter = fi.highpass(2,200) : fi.peak_eq_cq(3,2400,0.7);
+    speechfilter = fi.highpass(2,200) : fi.fi.peak_eq_cq(3,2400,0.7);
     filterswitch = hslider("h:LevelerPro/[4][symbol:leveler_filterswitch][style:radio{'ebu':0;'speech':1}]filter",0,0,1,1);
 };
 
@@ -119,7 +120,7 @@ with {
     (target - lufs)
     +(prev_gain )
     :  limit(limit_neg,limit_pos)
-    : ds.dynamicSmoothing(
+    : dynamicSmoothing(
       sensitivity * expander(abs(fl)+abs(fr))
     ,  basefreq * expander(abs(fl)+abs(fr))
     )
@@ -209,3 +210,41 @@ prefilter = stage1 : stage2;
 normalize997 = *(0.9273671710547968);
 
 ebur128 = prefilter : normalize997;
+
+
+
+
+
+
+
+
+// Dynamic Smoothing
+PI = ma.PI;
+SR = ma.SR;
+NY = SR / 2.0;
+T = 1.0 / SR;
+PIT = PI * T;
+
+SVF(Q, CF, x) = f ~ si.bus(2) : ! , ! , si.bus(3)
+    with {
+        g = tan(CF * PIT);
+        R2 = 1.0 / Q;
+        gPlusR2 = g + R2;
+        f(s0, s1) = u0 , u1 , BP , HP , LP
+            with {
+                HP = (x - s0 * gPlusR2 - s1) / (1.0 + g * gPlusR2);
+                v0 = HP * g;
+                BP = s0 + v0;
+                v1 = BP * g;
+                LP = s1 + v1;
+                u0 = v0 + BP;
+                u1 = v1 + LP;
+            };
+    };
+dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
+    with {
+        f(s) = SVF(.5, CF, x)
+            with {
+                CF = min(NY * .25, baseCF + sensitivity * abs(s) * NY);
+            };
+    };

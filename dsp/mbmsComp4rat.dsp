@@ -1,6 +1,6 @@
 // -*-Faust-*-
 
-declare name "mbmsComp4";
+declare name "mbmsComp4rat";
 declare version "1.0";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";

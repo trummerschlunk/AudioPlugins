@@ -21,7 +21,7 @@ init_leveler_speed = 80;
 init_leveler_scale =100;
 
 
-process = si.bus(Nch) : pregain(Nch) : leveler : si.bus(Nch);
+process = si.bus(Nch) : pregain(Nch) : leveler : postgain(Nch) : si.bus(Nch);
 
 
 

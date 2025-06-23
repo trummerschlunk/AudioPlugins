@@ -23,19 +23,26 @@ init_leveler_scale =100;
 
 process = si.bus(Nch) : pregain(Nch) : leveler : si.bus(Nch);
 
+
+
+
+bp = checkbox("h:LevelerPro/[0]bypass_leveler"):si.smoo;
+
 preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
+target = vslider("h:[2]Controls/[1][unit:dB]target", -23, -60, 0, 1);
+
+limit_pos = vslider("h:[2]Controls/[2][unit:dB]max boost", init_leveler_maxboost, 0, 30, 1);
+limit_neg = vslider("h:[2]Controls/[3][unit:dB]max cut", init_leveler_maxcut, 0, 30, 1) : ma.neg;
+scale = vslider("h:[2]Controls/[4][unit:%]strength", init_leveler_scale, 0, 100, 1) * 0.01;
+
+leveler_speed = vslider("h:[2]Controls/[5][unit:%]speed", init_leveler_speed, 0, 100, 1) * 0.01;
+leveler_brake_thresh = target + vslider("h:[2]Controls/[6][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
+meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[7][unit:%]brake",0,100);
+
+leveler_meter_gain = vbargraph("h:[2]Controls/[8][unit:dB]gain",-50,50);
+
 postGainSlider = vslider("h:[2]Controls/[9][unit:dB]PostGain", 0, -20, 20, 0.1);
 
-target = vslider("h:[2]Controls/[1][symbol:target]target", -23, -60, 0, 1);
-bp = checkbox("h:LevelerPro/[3][symbol:bypass_leveler]bypass_leveler"):si.smoo;
-leveler_speed = vslider("h:[2]Controls/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
-leveler_brake_thresh = target + vslider("h:[2]Controls/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
-meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[6][unit:%]brake",0,100);
-limit_pos = vslider("h:[2]Controls/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
-limit_neg = vslider("h:[2]Controls/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
-leveler_meter_gain = vbargraph("h:[2]Controls/[1][unit:dB][symbol:leveler_gain]gain",-50,50);
-
-scale = vslider("h:[2]Controls/[9][unit:%]scale", init_leveler_scale, 0, 100, 1) * 0.01;
 
 // utility functions
 
@@ -97,7 +104,7 @@ lk2_var(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) w
 
 
 lk2_short = lk2_fixed(3);
-lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : vbargraph("h:[6]PostStage/[symbol:lufs_out_meter][unit:dB]lufs",meters_minimum,0))) : _,_;
+lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : vbargraph("h:[6]PostStage/[unit:dB]lufs",meters_minimum,0))) : _,_;
 
 lk2_time =
   // 0.4;
@@ -109,7 +116,7 @@ lk2_time =
 
 kfilter = si.bus(1) <: (ebur128 * filterswitch), (speechfilter  * (1 - filterswitch)) :> si.bus(1) with{
     speechfilter = fi.highpass(2,200) : fi.fi.peak_eq_cq(3,2400,0.7);
-    filterswitch = hslider("h:LevelerPro/[4][symbol:leveler_filterswitch][style:radio{'ebu':0;'speech':1}]filter",0,0,1,1);
+    filterswitch = hslider("h:LevelerPro/[4][style:radio{'ebu':0;'speech':1}]filter",0,0,1,1);
 };
 
 

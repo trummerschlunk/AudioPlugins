@@ -24,12 +24,13 @@ init_leveler_scale =100;
 process = si.bus(Nch) : pregain(Nch) : leveler : si.bus(Nch);
 
 preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
+postGainSlider = vslider("h:[2]Controls/[9][unit:dB]PostGain", 0, -20, 20, 0.1);
 
 target = vslider("h:[2]Controls/[1][symbol:target]target", -23, -60, 0, 1);
 bp = checkbox("h:LevelerPro/[3][symbol:bypass_leveler]bypass_leveler"):si.smoo;
 leveler_speed = vslider("h:[2]Controls/[4][unit:%][integer]speed", init_leveler_speed, 0, 100, 1) * 0.01;
 leveler_brake_thresh = target + vslider("h:[2]Controls/[5][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
-meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[6][unit:%][integer]brake",0,100);
+meter_leveler_brake = _*100 : vbargraph("h:[2]Controls/[6][unit:%]brake",0,100);
 limit_pos = vslider("h:[2]Controls/[7][unit:dB]max boost", init_leveler_maxboost, 0, 60, 1);
 limit_neg = vslider("h:[2]Controls/[8][unit:dB]max cut", init_leveler_maxcut, 0, 60, 1) : ma.neg;
 leveler_meter_gain = vbargraph("h:[2]Controls/[1][unit:dB][symbol:leveler_gain]gain",-50,50);
@@ -40,6 +41,10 @@ scale = vslider("h:[2]Controls/[9][unit:%]scale", init_leveler_scale, 0, 100, 1)
 
 pregain(n) = par(i,n,gain) with {
     gain = _ * (preGainSlider : ba.db2linear : si.smoo);
+};
+
+postgain(n) = par(i,n,gain) with {
+    gain = _ * (postGainSlider : ba.db2linear : si.smoo);
 };
 
 // LEVELER

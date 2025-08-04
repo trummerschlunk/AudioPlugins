@@ -80,7 +80,7 @@ AS_UNIQUE_ID = $(shell echo $(1) | base64 | cut -c 1-4)
 
 FAUSTPP_ARGS = \
 	-Dbinary_name="fadeli-$(1)" \
-	-Dbrand="DISTRHO" \
+	-Dbrand="Klaus Scheuermann" \
 	-Dclapid="$(call AS_CLAP_ID,$(1))" \
 	-Duniqueid="$(call AS_UNIQUE_ID,$(1))" \
 	-Dhomepage="https://github.com/DISTRHO/Fadeli" \

@@ -1,7 +1,0 @@
-Fadeli Wishes
-
-- GUI: transfer FaustIDE Gui?
-
-- Latency report to DAW (ms or samples)
-
-- scale:log for faders

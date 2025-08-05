@@ -79,11 +79,11 @@ AS_CLAP_ID = studio.kx.distrho.fadeli.$(1)
 AS_UNIQUE_ID = $(shell echo $(1) | base64 | cut -c 1-4)
 
 FAUSTPP_ARGS = \
-	-Dbinary_name="fadeli-$(1)" \
-	-Dbrand="Klaus Scheuermann" \
+	-Dbinary_name="4ohm-$(1)" \
+	-Dbrand="4ohm" \
 	-Dclapid="$(call AS_CLAP_ID,$(1))" \
 	-Duniqueid="$(call AS_UNIQUE_ID,$(1))" \
-	-Dhomepage="https://github.com/DISTRHO/Fadeli" \
+	-Dhomepage="https://4ohm.de" \
 	-Dlabel="$(call AS_LABEL,$(1))" \
 	-Dlicense="ISC" \
 	-Dlicenseurl="http://spdx.org/licenses/ISC.html" \

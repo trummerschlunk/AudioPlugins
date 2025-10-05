@@ -1,3 +1,10 @@
+
+
+declare name "Dynamic Saturator";
+declare version "1.0";
+declare author "Klaus Scheuermann";
+declare license "GPLv3";
+
 import("stdfaust.lib");
 
 NCh = 2;

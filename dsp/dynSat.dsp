@@ -5,6 +5,9 @@ declare version "1.0";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
+add = library("addfaust.lib");
+
+
 import("stdfaust.lib");
 
 NCh = 2;

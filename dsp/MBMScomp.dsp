@@ -9,7 +9,7 @@ declare license "GPLv3";
 
 import("stdfaust.lib");
 
-
+add = library("addfaust.lib");
 
 process = si.bus(Nch) : ef.dryWetMixer(dryWet,mscomp_bp) : si.bus(Nch);
 
@@ -55,7 +55,7 @@ with {
   ;
 
   // TODO: use co.peak_compression_gain_N_chan_db when it arrives in the current faust version
-  compressor(N,prePost,strength,thresh,att,rel,knee,link) = co.peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N);
+  compressor(N,prePost,strength,thresh,att,rel,knee,link) = add.peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N);
 
   gain_calc = (strength_array, thresh_array, att_array, rel_array, knee_array, link_array, si.bus(N*B))
               : ro.interleave(B,6+N)

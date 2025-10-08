@@ -6,7 +6,7 @@ declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 add = library("addfaust.lib");
-aa = library("aanl.lib");
+// aa = library("aanl.lib");
 
 
 import("stdfaust.lib");
@@ -18,7 +18,7 @@ process = add.dryWetMixer(dryWet, variable_softclip);
 dryWet = hslider("dryWet",100,0,100,1) /100;
 
 variable_softclip(l,r) = l,r : par(i,2,gainup : function : gaindown : makeup) with {
-    function = aa.softclipQuadratic2;
+    function = add.softclipQuadratic2;
     gainup = _ * ba.db2linear(g);
     gaindown = _ * ba.db2linear(0-g);
     

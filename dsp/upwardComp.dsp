@@ -17,7 +17,7 @@ maxRelTime = 3;
 maxHold = 1000;
 
 process =       bp2(ms_switch,ms_enc) 
-            :   ef.dryWetMixer(dryWet, 
+            :   add.dryWetMixer(dryWet, 
                     expanderSC_N_chan(strength,threshold,range,attack,hold,release,knee,prePost,link,meter,maxHold,Nch,sidechain(scfreq),0,0)
                 )
             :   bp2(ms_switch,ms_dec)

@@ -11,7 +11,7 @@ import("stdfaust.lib");
 
 add = library("addfaust.lib");
 
-process = si.bus(Nch) : ef.dryWetMixer(dryWet,mscomp_bp) : si.bus(Nch);
+process = si.bus(Nch) : add.dryWetMixer(dryWet,mscomp_bp) : si.bus(Nch);
 
 // stereo bypass with si.smoo fading
 bp2(sw,pr) =  _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {

@@ -291,3 +291,77 @@ peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,1) =
 peak_compression_gain_N_chan_db(strength,thresh,att,rel,knee,prePost,link,N) =
   par(i, N, peak_compression_gain_mono_db(strength,thresh,att,rel,knee,prePost))
   <: (si.bus(N),(ba.parallelMin(N) <: si.bus(N))) : ro.interleave(N,2) : par(i,N,(it.interpolate_linear(link)));
+
+
+
+
+
+
+
+
+
+
+
+
+//=====================================Mixing=============================================
+//========================================================================================
+
+// Implementation to share common code
+dwmEnv(wetAmount, FX) = environment
+{
+    N = inputs(FX);
+    wet(wg) = FX : par(i, N, *(wg));
+    dry(dg) = par(i, N, *(dg));
+    out(wg, dg) = si.bus(N) <: wet(wg), dry(dg) :> si.bus(N);
+    
+    dryWetMixer = out(wetGain, dryGain) 
+    with { 
+        wetGain = wetAmount; 
+        dryGain = 1. - wetGain; 
+    };
+    
+    dryWetMixerConstantPower = out(wetGain, dryGain)  
+    with {
+        theta = ma.PI*wetAmount/2.;
+        dryGain = cos(theta)/sqrt(2.);
+        wetGain = sin(theta)/sqrt(2.);
+    };
+};
+
+
+//---------------`(ef.)dryWetMixer`-------------
+// Linear dry-wet mixer for a N inputs and N outputs effect.
+//
+// #### Usage
+//
+// ```
+// si.bus(inputs(FX)) : dryWetMixer(wetAmount, FX) : si.bus(inputs(FX))
+// ```
+//
+// Where:
+//
+// * `wetAmount`: the wet amount (0-1). 0 produces only the dry signal and 1 produces only the wet signal
+// * `FX`: an arbitrary effect (N inputs and N outputs) to apply to the input bus
+//------------------------------------------------------------
+declare dryWetMixer author "David Braun, revised by Stéphane Letz";
+
+dryWetMixer(wetAmount, FX) = dwmEnv(wetAmount, FX).dryWetMixer;
+
+
+//---------------`(ef.)dryWetMixerConstantPower`-------------
+// Constant-power dry-wet mixer for a N inputs and N outputs effect.
+//
+// #### Usage
+//
+// ```
+// si.bus(inputs(FX)) : dryWetMixerConstantPower(wetAmount, FX) :si.bus(inputs(FX))
+// ```
+//
+// Where:
+//
+// * `wetAmount`: the wet amount (0-1). 0 produces only the dry signal and 1 produces only the wet signal
+// * `FX`: an arbitrary effect (N inputs and N outputs) to apply to the input bus
+//------------------------------------------------------------
+declare dryWetMixerConstantPower author "David Braun, revised by Stéphane Letz";
+
+dryWetMixerConstantPower(wetAmount, FX) = dwmEnv(wetAmount, FX).dryWetMixerConstantPower;

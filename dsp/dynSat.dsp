@@ -9,7 +9,7 @@ import("stdfaust.lib");
 
 NCh = 2;
 
-process = ef.dryWetMixer(dryWet, variable_softclip);
+process = add.dryWetMixer(dryWet, variable_softclip);
 
 dryWet = hslider("dryWet",100,0,100,1) /100;
 

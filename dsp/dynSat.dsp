@@ -6,6 +6,7 @@ declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 add = library("addfaust.lib");
+aa = library("aanl.lib");
 
 
 import("stdfaust.lib");

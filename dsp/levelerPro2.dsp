@@ -7,6 +7,7 @@ declare license "GPLv3";
 
 // ds = library("dynamicsmoothing.lib");
 // ebu = library("ebur128.lib");
+add = library("addfaust.lib");
 
 import("stdfaust.lib");
 
@@ -129,7 +130,7 @@ with {
 expander_sc_filter = fi.bandpass(4,150,1000);
 
 
-  expander(x) = ( x : expander_sc_filter : co.peak_expansion_gain_mono_db(maxHold,strength,leveler_brake_threshold_dynamic(x),range,gate_att,hold,gate_rel,knee,prePost) 
+  expander(x) = ( x : expander_sc_filter : add.peak_expansion_gain_mono_db(maxHold,strength,leveler_brake_threshold_dynamic(x),range,gate_att,hold,gate_rel,knee,prePost) 
                  : ba.db2linear
                  :max(0)
                  :min(1))

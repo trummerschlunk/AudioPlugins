@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         target: [macos-10.15, macos-universal-10.15]
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +41,13 @@ jobs:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
       - uses: distrho/dpf-makefile-action@v1
+        env:
+          MACOS_APP_CERTIFICATE: ${{ secrets.MACOS_APP_CERTIFICATE }}
+          MACOS_INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_NOTARIZATION_USER: ${{ secrets.MACOS_NOTARIZATION_USER }}
+          MACOS_NOTARIZATION_PASS: ${{ secrets.MACOS_NOTARIZATION_PASS }}
+          MACOS_NOTARIZATION_TEAM: ${{ secrets.MACOS_NOTARIZATION_TEAM }}
         with:
           target: ${{ matrix.target }}
           lto: true
